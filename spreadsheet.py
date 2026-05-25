@@ -26,6 +26,7 @@ def normalize_repo_url(url: str) -> str:
 
     末尾スラッシュ・.git サフィックスを除去し、前後の空白をトリムする。
     スプレッドシート入力のゆらぎに対応するために使用する。
+    例: "https://github.com/org/repo.git/" → "https://github.com/org/repo"
 
     Args:
         url: 正規化する URL 文字列
@@ -33,7 +34,7 @@ def normalize_repo_url(url: str) -> str:
     Returns:
         正規化後の URL 文字列
     """
-    return url.strip().removesuffix(".git").rstrip("/")
+    return url.strip().rstrip("/").removesuffix(".git").rstrip("/")
 
 
 def get_repo_config(

@@ -108,6 +108,20 @@ def test_matches_url_with_git_suffix(mock_creds, mock_build):
 
 @patch("spreadsheet.build")
 @patch("spreadsheet._get_credentials")
+def test_matches_url_with_git_suffix_and_trailing_slash(mock_creds, mock_build):
+    """.git と末尾スラッシュが両方ある URL でも一致する。"""
+    values = [
+        ["GitHubリポジトリURL", "フォルダ名", "フォルダID", "ファイルパターン", "有効"],
+        ["https://github.com/org/project-a.git/", "テスト", "folder-id", "README.md", "TRUE"],
+    ]
+    mock_build.return_value = _make_mock_service(values)
+
+    config = get_repo_config("sheet-id", "https://github.com/org/project-a", "{}")
+    assert config is not None
+
+
+@patch("spreadsheet.build")
+@patch("spreadsheet._get_credentials")
 def test_filters_empty_patterns_from_trailing_comma(mock_creds, mock_build):
     """末尾カンマなどで生じる空のパターンは除去される。"""
     values = [
