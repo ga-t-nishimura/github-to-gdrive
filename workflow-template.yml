@@ -1,0 +1,21 @@
+# このファイルを対象リポジトリの .github/workflows/sync-to-gdrive.yml
+# としてコピーして使用してください。
+name: Sync docs to Google Drive
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ga-t-nishimura/github-to-gdrive@main
+        with:
+          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+          spreadsheet_id: ${{ secrets.GDRIVE_SPREADSHEET_ID }}
