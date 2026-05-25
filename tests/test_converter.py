@@ -26,3 +26,18 @@ def test_converts_fenced_code_block():
 def test_empty_input_returns_empty_string():
     result = markdown_to_html("")
     assert result == ""
+
+
+def test_html_wraps_with_heading_styles():
+    """変換結果がフル HTML ドキュメント構造でラップされ、見出しスタイルを含むこと。"""
+    result = markdown_to_html("# Title\n## Section")
+    assert "<html>" in result
+    assert "<style>" in result
+    assert "h1" in result
+    assert "h2" in result
+    assert "font-size" in result
+
+
+def test_heading_styles_do_not_affect_empty_check():
+    """空文字列入力では空文字列を返し、HTML ラッパーを追加しないこと。"""
+    assert markdown_to_html("") == ""
