@@ -21,7 +21,7 @@ mainブランチへのpushをトリガーに、GitHubリポジトリ内のMarkdo
 
 > ⚠️ **最小権限の原則**: Service Account には必要最小限の権限のみ付与してください。
 > Drive 全体のオーナー権限は**与えないでください**。
-> 対象スプレッドシートと各 Drive フォルダに対する「編集者」権限のみで動作します。
+> 対象スプレッドシートに「閲覧者」、各 Drive フォルダに「編集者」権限のみで動作します。
 
 ### 2. Google スプレッドシートの準備
 
@@ -33,7 +33,7 @@ mainブランチへのpushをトリガーに、GitHubリポジトリ内のMarkdo
 |---|---|---|---|---|
 | https://github.com/org/project-a | プロジェクトAマニュアル | 1BxiMVs...（フォルダURLの末尾） | README.md,docs/*.md | TRUE |
 
-> **フォルダIDの取得方法**: Google DriveでフォルダをブラウザUCで開き、URLの末尾の文字列がフォルダIDです。  
+> **フォルダIDの取得方法**: Google Driveでフォルダをブラウザで開き、URLの末尾の文字列がフォルダIDです。  
 > 例: `https://drive.google.com/drive/folders/`**`1BxiMVs0XRA5nFMdKvBd`** ← この部分
 
 4. 作成したサービスアカウントのメールアドレス（例: `xxx@yyy.iam.gserviceaccount.com`）を  
