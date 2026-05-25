@@ -82,7 +82,7 @@ def get_repo_config(
         if normalize_repo_url(row_url) != normalized_url:
             continue
         if enabled.strip().upper() != "TRUE":
-            return None
+            continue
         file_patterns = [p.strip() for p in patterns.split(",") if p.strip()]
         return {
             "folder_id": folder_id.strip(),

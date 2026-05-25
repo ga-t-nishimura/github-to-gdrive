@@ -54,9 +54,19 @@ def _find_existing_file(service, folder_id: str, filename: str) -> Optional[str]
         f"mimeType = 'application/vnd.google-apps.document' and "
         f"trashed = false"
     )
-    result = service.files().list(q=query, fields="files(id, name)").execute()
-    files = result.get("files", [])
-    return files[0]["id"] if files else None
+    page_token = None
+    while True:
+        kwargs = {"q": query, "fields": "nextPageToken, files(id, name)"}
+        if page_token:
+            kwargs["pageToken"] = page_token
+        result = service.files().list(**kwargs).execute()
+        files = result.get("files", [])
+        if files:
+            return files[0]["id"]
+        page_token = result.get("nextPageToken")
+        if not page_token:
+            break
+    return None
 
 
 def upload_or_update_file(

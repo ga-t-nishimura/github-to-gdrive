@@ -122,6 +122,22 @@ def test_matches_url_with_git_suffix_and_trailing_slash(mock_creds, mock_build):
 
 @patch("spreadsheet.build")
 @patch("spreadsheet._get_credentials")
+def test_enabled_row_after_disabled_row(mock_creds, mock_build):
+    """同一リポジトリの disabled 行の後に enabled 行があれば設定を返す。"""
+    values = [
+        ["https://github.com/org/project-a", "旧フォルダ", "old-folder-id", "README.md", "FALSE"],
+        ["https://github.com/org/project-a", "新フォルダ", "new-folder-id", "README.md,docs/*.md", "TRUE"],
+    ]
+    mock_build.return_value = _make_mock_service(values)
+
+    config = get_repo_config("sheet-id", "https://github.com/org/project-a", "{}")
+    assert config is not None
+    assert config["folder_id"] == "new-folder-id"
+    assert config["folder_name"] == "新フォルダ"
+
+
+@patch("spreadsheet.build")
+@patch("spreadsheet._get_credentials")
 def test_filters_empty_patterns_from_trailing_comma(mock_creds, mock_build):
     """末尾カンマなどで生じる空のパターンは除去される。"""
     values = [

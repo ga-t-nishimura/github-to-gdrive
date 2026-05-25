@@ -3,14 +3,17 @@ from drive import upload_or_update_file, _escape_drive_query_value
 
 
 def _make_mock_service(existing_files=None):
-    """Google Drive API サービスのモックを生成するヘルパー。"""
+    """Google Drive API サービスのモックを生成するヘルパー。
+
+    nextPageToken なし（単一ページ）のレスポンスを返す。
+    """
     mock_service = MagicMock()
     files_list = existing_files if existing_files is not None else []
     (
         mock_service.files.return_value
         .list.return_value
         .execute.return_value
-    ) = {"files": files_list}
+    ) = {"files": files_list}  # nextPageToken なし → ループが1回で終了
     (
         mock_service.files.return_value
         .create.return_value
