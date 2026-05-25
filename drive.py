@@ -56,7 +56,12 @@ def _find_existing_file(service, folder_id: str, filename: str) -> Optional[str]
     )
     page_token = None
     while True:
-        kwargs = {"q": query, "fields": "nextPageToken, files(id, name)"}
+        kwargs = {
+            "q": query,
+            "fields": "nextPageToken, files(id, name)",
+            "supportsAllDrives": True,         # 共有ドライブ対応
+            "includeItemsFromAllDrives": True,  # 共有ドライブのファイルを含める
+        }
         if page_token:
             kwargs["pageToken"] = page_token
         result = service.files().list(**kwargs).execute()
@@ -99,7 +104,10 @@ def upload_or_update_file(
 
     if existing_id:
         service.files().update(
-            fileId=existing_id, media_body=media, fields="id"
+            fileId=existing_id,
+            media_body=media,
+            fields="id",
+            supportsAllDrives=True,  # 共有ドライブ対応
         ).execute()
         return existing_id
     else:
@@ -109,6 +117,9 @@ def upload_or_update_file(
             "mimeType": "application/vnd.google-apps.document",
         }
         result = service.files().create(
-            body=metadata, media_body=media, fields="id"
+            body=metadata,
+            media_body=media,
+            fields="id",
+            supportsAllDrives=True,  # 共有ドライブ対応
         ).execute()
         return result["id"]
