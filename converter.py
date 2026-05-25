@@ -1,5 +1,12 @@
 import re
-import markdown as md_lib
+
+from markdown_it import MarkdownIt
+
+# CommonMark 準拠パーサー + GitHub Flavored Markdown の table 拡張を有効化。
+# Python の標準 markdown ライブラリは blockquote 内の fenced code block を
+# 正しくパースできず、`> # コメント` 行が見出しタグに化けるバグがあるため、
+# CommonMark 準拠の markdown-it-py に切り替えた。
+_md = MarkdownIt("commonmark").enable("table")
 
 # 各見出しレベルのフォントサイズ定義（Google Docs での表示基準）
 _HEADING_SIZES: dict[str, str] = {
@@ -41,6 +48,10 @@ def _add_inline_heading_styles(html: str) -> str:
 def markdown_to_html(markdown_content: str) -> str:
     """Markdown テキストをフル HTML ドキュメントに変換する。
 
+    CommonMark 準拠のパーサーを使用することで、blockquote 内の
+    fenced code block も正しく変換される（bash コメント行が見出しに
+    化けるバグを防ぐ）。
+
     Google Drive API が HTML→Google Docs に変換する際に見出しサイズを正しく
     解釈できるよう、以下の両方を適用する:
     1. <style> タグで H1〜H6 のフォントサイズを CSS 定義（フォールバック）
@@ -54,10 +65,7 @@ def markdown_to_html(markdown_content: str) -> str:
     """
     if not markdown_content:
         return ""
-    body = md_lib.markdown(
-        markdown_content,
-        extensions=["tables", "fenced_code"],
-    )
+    body = _md.render(markdown_content)
     body_with_styles = _add_inline_heading_styles(body)
     return (
         f"<html><head><style>{_HEADING_CSS}</style></head>"
