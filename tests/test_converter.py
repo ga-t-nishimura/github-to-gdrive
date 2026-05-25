@@ -67,3 +67,27 @@ def test_bold_heading_has_inline_style():
     # <h1 style="..."> が付与されているか確認
     assert '<h1 style="font-size:26pt;font-weight:bold;">' in result
     assert "<strong>cuticomi-app</strong>" in result
+
+
+def test_blockquote_fenced_code_not_parsed_as_heading():
+    """blockquote 内の fenced code block の bash コメント行が見出しタグに化けないこと。
+
+    Python 標準 markdown ライブラリのバグにより、
+    `> # コメント` が <h1> に変換されていた問題のリグレッションテスト。
+    """
+    md = "> ```bash\n> # パスワードを登録\n> echo done\n> ```"
+    result = markdown_to_html(md)
+    # コードブロック内の # は見出しにならず、pre/code として出力されること
+    assert "<h1" not in result
+    assert "<code" in result
+    assert "パスワードを登録" in result
+
+
+def test_blockquote_fenced_code_multiple_comments_not_headings():
+    """blockquote 内の複数の bash コメント行が全て見出しにならないこと。"""
+    md = "> ```bash\n> # step 1\n> cmd1\n> # step 2\n> cmd2\n> ```"
+    result = markdown_to_html(md)
+    assert "<h1" not in result
+    assert "<h2" not in result
+    assert "step 1" in result
+    assert "step 2" in result
