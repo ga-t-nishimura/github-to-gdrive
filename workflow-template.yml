@@ -1,14 +1,16 @@
+# ─────────────────────────────────────────────────────────────
 # このファイルを対象リポジトリの .github/workflows/sync-to-gdrive.yml
 # としてコピーして使用してください。
+# ─────────────────────────────────────────────────────────────
 name: Sync docs to Google Drive
 
 on:
   push:
     branches: [main]
-  workflow_dispatch:
+  workflow_dispatch:  # 手動実行（初回確認・デバッグ用）
 
 permissions:
-  contents: read
+  contents: read  # リポジトリのファイルを読むためだけに必要な最小権限
 
 jobs:
   sync:
