@@ -20,7 +20,7 @@ def test_converts_table():
 def test_converts_fenced_code_block():
     md = "```python\nprint('hello')\n```"
     result = markdown_to_html(md)
-    assert "<code>" in result
+    assert "<code" in result
 
 
 def test_empty_input_returns_empty_string():

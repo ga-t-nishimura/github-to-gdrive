@@ -1,4 +1,3 @@
-import re
 import markdown as md_lib
 
 
@@ -13,10 +12,7 @@ def markdown_to_html(markdown_content: str) -> str:
     """
     if not markdown_content:
         return ""
-    html = md_lib.markdown(
+    return md_lib.markdown(
         markdown_content,
         extensions=["tables", "fenced_code"],
     )
-    # Normalize code tags by removing language class attributes
-    html = re.sub(r'<code[^>]*>', '<code>', html)
-    return html
