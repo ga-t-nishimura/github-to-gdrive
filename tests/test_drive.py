@@ -72,3 +72,13 @@ def test_query_escapes_single_quote_in_filename(mock_creds, mock_build):
 
     q = mock_service.files.return_value.list.call_args.kwargs["q"]
     assert "Bob\\'s Guide" in q
+
+
+def test_escape_drive_query_value_backslash():
+    """バックスラッシュは先にエスケープされる。"""
+    assert _escape_drive_query_value("a\\b") == "a\\\\b"
+
+
+def test_escape_drive_query_value_backslash_before_quote():
+    """バックスラッシュはシングルクォートより先にエスケープされる（二重エスケープ防止）。"""
+    assert _escape_drive_query_value("a\\'b") == "a\\\\\\'b"

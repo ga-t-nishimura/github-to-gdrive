@@ -6,7 +6,13 @@ from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload
 
-SCOPES = ["https://www.googleapis.com/auth/drive"]
+SCOPES = [
+    # drive.file ではなく drive を使う理由:
+    # _find_existing_file で既存ファイルを検索する際、
+    # そのファイルが Service Account 以外のユーザーが作成した場合でも
+    # リストできるよう、フル drive スコープが必要。
+    "https://www.googleapis.com/auth/drive"
+]
 
 
 def _get_credentials(credentials_json: str):
