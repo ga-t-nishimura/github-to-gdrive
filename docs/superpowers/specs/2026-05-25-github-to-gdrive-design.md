@@ -59,12 +59,12 @@ mainブランチへのpushをトリガーに、リポジトリ内のドキュメ
 | 列 | 項目 | 例 |
 |----|------|----|
 | A列 | GitHubリポジトリURL | `https://github.com/org/project-a` |
-| B列 | Google DriveフォルダID | `1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms` |
-| C列 | Google Driveフォルダ名（参照用） | `プロジェクトAマニュアル` |
+| B列 | Google Driveフォルダ名（参照用） | `プロジェクトAマニュアル` |
+| C列 | Google DriveフォルダID | `1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms` |
 | D列 | 同期ファイルパターン | `README.md,docs/*.md` |
 | E列 | 有効フラグ | `TRUE` / `FALSE` |
 
-> **注意**: フォルダ名（C列）は人が確認するための参照用。同期処理ではB列のIDを使用する。
+> **注意**: フォルダ名（B列）は人が確認するための参照用。同期処理ではC列のIDを使用する。
 
 ---
 
@@ -104,7 +104,7 @@ jobs:
 | 情報 | 保存場所 | 説明 |
 |------|---------|------|
 | `GOOGLE_CREDENTIALS` | GitHub Secrets（各リポジトリ） | Google Service Account の JSON 鍵 |
-| `GDRIVE_SPREADSHEET_ID` | GitHub Secrets（各リポジトリ） | 対応表スプレッドシートのID |
+| `GDRIVE_SPREADSHEET_ID` | GitHub Secrets（各リポジトリ） | 対応表スプレッドシートのID（全リポジトリで同じ値を設定する） |
 
 ---
 
