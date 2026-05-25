@@ -1,0 +1,30 @@
+name: 'Sync docs to Google Drive'
+description: 'mainブランチへのpushをトリガーに、MarkdownドキュメントをGoogle DriveにGoogle Docs形式で自動同期します'
+author: 'ga-t-nishimura'
+
+inputs:
+  google_credentials:
+    description: 'Google Service Account の JSON 鍵（GitHub Secrets から渡す: secrets.GOOGLE_CREDENTIALS）'
+    required: true
+  spreadsheet_id:
+    description: 'リポジトリ↔フォルダ対応表の Google スプレッドシート ID（GitHub Secrets から渡す: secrets.GDRIVE_SPREADSHEET_ID）'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      shell: bash
+      run: pip install -r "${{ github.action_path }}/requirements.txt"
+
+    - name: Sync Markdown docs to Google Drive
+      shell: bash
+      run: python "${{ github.action_path }}/sync.py"
+      env:
+        GOOGLE_CREDENTIALS: ${{ inputs.google_credentials }}
+        SPREADSHEET_ID: ${{ inputs.spreadsheet_id }}
