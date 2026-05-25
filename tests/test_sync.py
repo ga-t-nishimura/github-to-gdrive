@@ -112,7 +112,9 @@ def test_main_syncs_files(mock_config, mock_convert, mock_upload, tmp_path, monk
         "sheet-id", "https://github.com/org/project-a", '{"type": "service_account"}'
     )
     mock_convert.assert_called_once_with("# Hello")
-    mock_upload.assert_called_once()
+    mock_upload.assert_called_once_with(
+        "folder-123", "README", "<h1>Hello</h1>", '{"type": "service_account"}'
+    )
 
 
 @patch("sync.get_repo_config")
@@ -126,5 +128,30 @@ def test_main_skips_when_repo_not_in_spreadsheet(mock_config, monkeypatch, capsy
 
     main()  # 例外を投げないこと
 
+    captured = capsys.readouterr()
+    assert "WARNING" in captured.out
+
+
+@patch("sync.upload_or_update_file")
+@patch("sync.markdown_to_html")
+@patch("sync.get_repo_config")
+def test_main_skips_when_no_files_match(mock_config, mock_convert, mock_upload, tmp_path, monkeypatch, capsys):
+    """ファイルパターンに一致するファイルがない場合は WARNING を出して正常終了する。"""
+    monkeypatch.setenv("GITHUB_REPOSITORY", "org/project-a")
+    monkeypatch.setenv("GOOGLE_CREDENTIALS", '{"type": "service_account"}')
+    monkeypatch.setenv("SPREADSHEET_ID", "sheet-id")
+    monkeypatch.setenv("GITHUB_WORKSPACE", str(tmp_path))
+
+    # tmp_path には README.md を作らない（ファイルなし）
+    mock_config.return_value = {
+        "folder_id": "folder-123",
+        "folder_name": "テストフォルダ",
+        "file_patterns": ["README.md"],
+        "enabled": True,
+    }
+
+    main()  # 例外を投げないこと
+
+    mock_upload.assert_not_called()
     captured = capsys.readouterr()
     assert "WARNING" in captured.out
