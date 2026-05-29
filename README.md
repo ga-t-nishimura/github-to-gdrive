@@ -1,144 +1,140 @@
 # github-to-gdrive
 
-mainブランチへのpushをトリガーに、GitHubリポジトリ内のMarkdownドキュメントをGoogle DriveへGoogle Docs形式で自動同期するGitHub Composite Actionです。
+A GitHub Composite Action that automatically syncs Markdown documents from GitHub repositories to Google Drive as Google Docs, triggered by pushes to the main branch.
 
-## 概要
+## Overview
 
-- **トリガー**: mainブランチへのpush（または手動実行）
-- **設定管理**: Google スプレッドシートでリポジトリ↔フォルダの対応を管理
-- **出力形式**: Markdown → Google Docs（部内メンバーがそのまま開いて読める）
+- **Trigger**: Push to the main branch (or manual run)
+- **Configuration**: Repository-to-folder mapping managed via a Google Spreadsheet
+- **Output format**: Markdown → Google Docs (ready to read directly in Google Drive)
 
-## セットアップ手順
+## Setup
 
-### 1. Google Service Account の作成
+### 1. Create a Google Service Account
 
-1. [Google Cloud Console](https://console.cloud.google.com/) でプロジェクトを作成（または既存を使用）
-2. 「APIとサービス」→「ライブラリ」で以下の2つのAPIを有効化
+1. Create a project in [Google Cloud Console](https://console.cloud.google.com/) (or use an existing one)
+2. Go to "APIs & Services" → "Library" and enable the following two APIs:
    - **Google Drive API**
    - **Google Sheets API**
-3. 「APIとサービス」→「認証情報」→「サービスアカウントを作成」
-4. サービスアカウントを作成後、「キー」タブ→「鍵を追加」→「JSON」で鍵ファイルをダウンロード
+3. Go to "APIs & Services" → "Credentials" → "Create Service Account"
+4. After creating the service account, go to the "Keys" tab → "Add Key" → "JSON" to download the key file
 
-> ⚠️ **最小権限の原則**: Service Account には必要最小限の権限のみ付与してください。
-> Drive 全体のオーナー権限は**与えないでください**。
-> 対象スプレッドシートに「閲覧者」、各 Drive フォルダに「編集者」権限のみで動作します。
+> ⚠️ **Principle of least privilege**: Grant only the minimum required permissions to the Service Account.
+> Do **not** grant owner access to the entire Drive.
+> The action only requires **Viewer** on the spreadsheet and **Editor** on each target Drive folder.
 
-### 2. Google スプレッドシートの準備
+### 2. Prepare the Google Spreadsheet
 
-1. 新しいスプレッドシートを作成
-2. 1行目にヘッダーを入力（任意）
-3. 2行目以降に対応情報を入力:
+1. Create a new spreadsheet
+2. Add a header row (optional)
+3. Enter mapping data from row 2 onwards:
 
-| A列: GitHubリポジトリURL | B列: GDriveフォルダ名（参照用） | C列: GDriveフォルダID | D列: 同期ファイルパターン | E列: 有効 |
+| Column A: GitHub Repo URL | Column B: GDrive Folder Name (reference) | Column C: GDrive Folder ID | Column D: Sync File Pattern | Column E: Enabled |
 |---|---|---|---|---|
-| https://github.com/org/project-a | プロジェクトAマニュアル | 1BxiMVs...（フォルダURLの末尾） | README.md,docs/*.md | TRUE |
+| https://github.com/org/project-a | Project A Manual | 1BxiMVs...（last part of folder URL） | README.md,docs/*.md | TRUE |
 
-> **フォルダIDの取得方法**: Google Driveでフォルダをブラウザで開き、URLの末尾の文字列がフォルダIDです。  
-> 例: `https://drive.google.com/drive/folders/`**`1BxiMVs0XRA5nFMdKvBd`** ← この部分
+> **How to get the Folder ID**: Open the folder in Google Drive in your browser. The string at the end of the URL is the folder ID.
+> Example: `https://drive.google.com/drive/folders/`**`1BxiMVs0XRA5nFMdKvBd`** ← this part
 
-4. 作成したサービスアカウントのメールアドレス（例: `xxx@yyy.iam.gserviceaccount.com`）を  
-   スプレッドシートの「共有」に**閲覧者**として追加（読み取り専用のため、編集者権限は不要）
-5. 各対象フォルダにも同じサービスアカウントを**編集者**として共有
+4. Share the spreadsheet with the service account email (e.g., `xxx@yyy.iam.gserviceaccount.com`) as a **Viewer** (read-only access is sufficient)
+5. Share each target folder with the same service account as an **Editor**
 
-### 3. 各対象リポジトリへの設定
+### 3. Configure Each Target Repository
 
-#### GitHub Secrets の設定
+#### GitHub Secrets
 
-対象リポジトリの「Settings」→「Secrets and variables」→「Actions」で以下を追加:
+In the target repository, go to "Settings" → "Secrets and variables" → "Actions" and add:
 
-| Secret名 | 値 |
+| Secret Name | Value |
 |---|---|
-| `GOOGLE_CREDENTIALS` | ダウンロードしたService AccountのJSONファイルの**中身**（テキスト全体） |
-| `GDRIVE_SPREADSHEET_ID` | 対応表スプレッドシートのID（URLの`/d/`と`/edit`の間の文字列）|
+| `GOOGLE_CREDENTIALS` | The full contents of the downloaded Service Account JSON key file |
+| `GDRIVE_SPREADSHEET_ID` | The spreadsheet ID (the string between `/d/` and `/edit` in the spreadsheet URL) |
 
-> **スプレッドシートIDの取得方法**: スプレッドシートのURLを確認してください。  
-> `https://docs.google.com/spreadsheets/d/`**`1BxiMVs0XRA5nFMdKv`**`/edit` ← 太字部分がID
+> **How to get the Spreadsheet ID**: Check the spreadsheet URL.
+> `https://docs.google.com/spreadsheets/d/`**`1BxiMVs0XRA5nFMdKv`**`/edit` ← the bold part is the ID
 
-> `GDRIVE_SPREADSHEET_ID` の値は全リポジトリで同じです。
+> `GDRIVE_SPREADSHEET_ID` is the same value across all repositories.
 
-#### ワークフローファイルの追加
+#### Add the Workflow File
 
-このリポジトリにある `workflow-template.yml` を対象リポジトリの  
-`.github/workflows/sync-to-gdrive.yml` としてコピーしてコミットします。
+Copy `workflow-template.yml` from this repository to `.github/workflows/sync-to-gdrive.yml` in the target repository:
 
 ```bash
-# 対象リポジトリで実行
 mkdir -p .github/workflows
 curl -o .github/workflows/sync-to-gdrive.yml \
   https://raw.githubusercontent.com/ga-t-nishimura/github-to-gdrive/main/workflow-template.yml
 git add .github/workflows/sync-to-gdrive.yml
-git commit -m "ci: Google Drive同期ワークフローを追加"
+git commit -m "ci: add Google Drive sync workflow"
 git push
 ```
 
-### 4. 動作確認
+### 4. Verify
 
-GitHubのActionsタブから「Sync docs to Google Drive」→「Run workflow」で手動実行できます。  
-ログで `Done. X file(s) synced to Google Drive folder '...'` と表示されれば成功です。
+Go to the "Actions" tab in GitHub → "Sync docs to Google Drive" → "Run workflow" to trigger a manual run.
+If the log shows `Done. X file(s) synced to Google Drive folder '...'`, the setup is complete.
 
 ---
 
-## セキュリティについて
+## Security
 
-### Service Account の最小権限
+### Minimum Permissions for the Service Account
 
-Service Account には以下の権限**のみ**を付与してください（Drive全体への権限は不要）:
+Grant the Service Account **only** the following permissions (no Drive-wide access required):
 
-- 対応表スプレッドシート → **閲覧者**（読み取りのみ）
-- 各同期先 Drive フォルダ → **編集者**（ファイル作成・更新に必要）
+- Mapping spreadsheet → **Viewer** (read-only)
+- Each target Drive folder → **Editor** (required for file creation and updates)
 
-### 鍵のローテーション
+### Key Rotation
 
-`GOOGLE_CREDENTIALS` に登録した Service Account の鍵は定期的にローテーションすることを推奨します:
+It is recommended to periodically rotate the Service Account key registered as `GOOGLE_CREDENTIALS`:
 
-1. Google Cloud Console でサービスアカウントに新しい鍵を追加
-2. 全対象リポジトリの `GOOGLE_CREDENTIALS` Secret を新しい鍵で更新
-3. 旧い鍵を Google Cloud Console で削除
+1. Add a new key to the service account in Google Cloud Console
+2. Update the `GOOGLE_CREDENTIALS` secret in all target repositories with the new key
+3. Delete the old key in Google Cloud Console
 
-### バージョン固定（本番運用推奨）
+### Version Pinning (recommended for production)
 
-`workflow-template.yml` の `uses` は `@main` を参照していますが、  
-本番環境ではタグや SHA で固定することを推奨します:
+The `workflow-template.yml` references `@main` by default. For production use, pin to a tag or SHA:
 
 ```yaml
-- uses: ga-t-nishimura/github-to-gdrive@v1  # タグで固定
+- uses: ga-t-nishimura/github-to-gdrive@v1  # pinned to a tag
 ```
 
 ---
 
-## 費用について
+## Cost
 
-### 基本的に無料
+### Essentially Free
 
-| コンポーネント | 費用 | 備考 |
+| Component | Cost | Notes |
 |---|---|---|
-| Google Sheets API | **無料** | 読み込み頻度がAPI上限（100リクエスト/100秒）に届かない |
-| Google Drive API | **無料** | ドキュメントアップロードは無料枠内に収まる |
-| Google Cloud Service Account | **無料** | Drive・Sheets APIは課金不要 |
-| Google Drive ストレージ | **無料（実質）** | Markdownを変換したドキュメントは数KB〜数十KB程度 |
+| Google Sheets API | **Free** | Read frequency stays well below the API limit (100 req/100 sec) |
+| Google Drive API | **Free** | Document uploads fit within the free tier |
+| Google Cloud Service Account | **Free** | Drive & Sheets APIs require no billing |
+| Google Drive Storage | **Free (effectively)** | Converted Docs are only a few KB to tens of KB |
 
-### 注意が必要な点: GitHub Actions 実行時間（privateリポジトリの場合）
+### Note: GitHub Actions Usage (for private repositories)
 
-| プラン | 月間無料枠 | 超過時の費用 |
+| Plan | Free Monthly Minutes | Overage Cost |
 |---|---|---|
-| GitHub Free | 2,000分/月 | $0.008/分 |
-| GitHub Team | 3,000分/月 | $0.008/分 |
+| GitHub Free | 2,000 min/month | $0.008/min |
+| GitHub Team | 3,000 min/month | $0.008/min |
 
-- 1回の同期実行: 約1〜2分
-- 目安: 10リポジトリ × 1日5回push = 月500〜1,000分程度 → **無料枠内に収まる見込み**
-- **publicリポジトリは完全無料・無制限**
+- One sync run: ~1–2 minutes
+- Estimate: 10 repos × 5 pushes/day = ~500–1,000 min/month → **likely within the free tier**
+- **Public repositories are completely free with no limits**
 
-**結論**: ほぼ無料で運用できます。
+**Conclusion**: Essentially free to operate.
 
 ---
 
-## 同期ファイルパターンの書き方
+## Sync File Pattern Syntax
 
-| パターン例 | 対象ファイル |
+| Pattern | Target Files |
 |---|---|
-| `README.md` | ルート直下のREADME.mdのみ |
-| `docs/*.md` | docsフォルダ直下のすべての.mdファイル |
-| `README.md,docs/*.md` | 上記2つを組み合わせ |
-| `**/*.md` | すべてのフォルダのすべての.mdファイル |
+| `README.md` | Only the root-level README.md |
+| `docs/*.md` | All .md files directly under the docs folder |
+| `README.md,docs/*.md` | Combination of the above two |
+| `**/*.md` | All .md files in all folders |
 
-> **Google Doc 名について**: サブディレクトリ内のファイルは `docs / guide` のようにパスを含めた名前で保存されます（同名ファイルの衝突を防ぐため）。
+> **Google Doc naming**: Files in subdirectories are saved with their path included in the name (e.g., `docs / guide`) to prevent naming conflicts.
